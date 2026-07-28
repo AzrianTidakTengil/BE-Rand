@@ -1,0 +1,102 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Task {
+  id: Int!
+  name: String!
+  priority: Int!
+  type: Int!
+}
+
+type Event {
+  id: Int!
+  name: String!
+  startDate: DateTime!
+  endDate: DateTime!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type TaskDay {
+  id: Int!
+  startTime: DateTime!
+  endTime: DateTime!
+  taskId: Int!
+  task: Task!
+}
+
+type LogSchedule {
+  taskId: Int!
+  eventId: Int!
+}
+
+type Query {
+  getAllTasks: [Task!]!
+  getTaskById(id: Int!): Task
+  getAllEvents: [Event!]!
+  getEventById(id: Int!): Event
+  getAllTaskDays: [TaskDay!]!
+  getTaskDayById(id: Int!): TaskDay
+  getAllLogSchedules: [LogSchedule!]!
+  getLogScheduleById(id: Int!): LogSchedule
+}
+
+type Mutation {
+  generateScheduleToday: Boolean!
+  createManyTasks(data: [CreateTaskInput!]!): Int!
+  updateTask(id: Int!, data: UpdateTaskInput!): Task!
+  deleteTask(id: Int!): Task!
+  createManyEvents(data: [CreateEventInput!]!): Int!
+  updateEvent(id: Int!, data: UpdateEventInput!): Event!
+  deleteEvent(id: Int!): Event!
+  createManyTaskDays(data: [CreateTaskDayInput!]!): Int!
+  updateTaskDay(id: Int!, data: UpdateTaskDayInput!): TaskDay!
+  deleteTaskDay(id: Int!): TaskDay!
+  createManyLogSchedules(data: [CreateLogScheduleInput!]!): Int!
+  deleteLogSchedule(id: Int!): LogSchedule!
+}
+
+input CreateTaskInput {
+  name: String!
+  priority: Int!
+  type: Int!
+}
+
+input UpdateTaskInput {
+  name: String
+  priority: Int
+  type: Int
+}
+
+input CreateEventInput {
+  name: String!
+  startDate: DateTime!
+  endDate: DateTime!
+}
+
+input UpdateEventInput {
+  name: String
+  startDate: DateTime
+  endDate: DateTime
+}
+
+input CreateTaskDayInput {
+  startTime: DateTime!
+  endTime: DateTime!
+  taskId: Int!
+}
+
+input UpdateTaskDayInput {
+  startTime: DateTime
+  endTime: DateTime
+  taskId: Int
+}
+
+input CreateLogScheduleInput {
+  taskDayId: Int
+  eventId: Int
+}

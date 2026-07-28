@@ -1,0 +1,38 @@
+import { Module } from '@nestjs/common';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
+import { PrismaModule } from './prisma/prisma.module';
+import { GraphQLModule } from '@nestjs/graphql';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { join } from 'path';
+import { TasksModule } from './tasks/tasks.module';
+import { EventsModule } from './events/events.module';
+import { TaskDaysModule } from './task-days/task-days.module';
+import { LogScheduleModule } from './log-schedule/log-schedule.module';
+import { AppResolver } from './app.resolver';
+import { CalendarService } from './calendar/calendar.service';
+import { CalendarModule } from './calendar/calendar.module';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot(),
+    ScheduleModule.forRoot(),
+    PrismaModule,
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      playground: true,
+    }),
+    TasksModule,
+    EventsModule,
+    TaskDaysModule,
+    LogScheduleModule,
+    CalendarModule,
+  ],
+  controllers: [AppController],
+  providers: [AppService, AppResolver, AppResolver, CalendarService],
+  exports: [AppService],
+})
+export class AppModule {}

@@ -1,0 +1,55 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Task {
+  id        Int       @id @default(autoincrement())
+  name      String
+  priority Int       
+  type Int
+
+  taskDays  TaskDay[]
+}
+
+model TaskDay {
+  id        Int      @id @default(autoincrement())
+  startTime DateTime
+  endTime   DateTime
+  
+  taskId    Int
+  task      Task     @relation(fields: [taskId], references: [id])
+
+  logSchedules LogSchedule[]
+}
+
+model Event {
+  id        Int       @id @default(autoincrement())
+  name      String
+  startDate DateTime
+  endDate   DateTime
+
+  logSchedules LogSchedule[]
+}
+
+model LogSchedule {
+  id          Int      @id @default(autoincrement())
+  createDate  DateTime @default(now())
+
+  // Solusi Polymorphic: 2 Foreign Key Opsional
+  taskDayId   Int?
+  taskDay     TaskDay? @relation(fields: [taskDayId], references: [id])
+
+  eventId     Int?
+  event       Event?   @relation(fields: [eventId], references: [id])
+}
