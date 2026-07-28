@@ -1,6 +1,20 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { google, calendar_v3 } from 'googleapis';
 
+interface GoogleCredentials {
+  type: string;
+  project_id: string;
+  private_key_id: string;
+  private_key: string;
+  client_email: string;
+  client_id: string;
+  auth_uri: string;
+  token_uri: string;
+  auth_provider_x509_cert_url: string;
+  client_x509_cert_url: string;
+  universe_domain?: string;
+}
+
 @Injectable()
 export class CalendarService {
   private readonly logger = new Logger(CalendarService.name);
@@ -8,8 +22,20 @@ export class CalendarService {
   private calendar: calendar_v3.Calendar;
 
   constructor() {
+    const credentialsString = process.env.GOOGLE_CREDENTIALS_JSON;
+
+    if (!credentialsString) {
+      throw new Error(
+        'FATAL ERROR: GOOGLE_CREDENTIALS_JSON tidak ditemukan di Environment Variables!',
+      );
+    }
+
+    const parsedCredentials = JSON.parse(
+      credentialsString,
+    ) as GoogleCredentials;
+
     const auth = new google.auth.GoogleAuth({
-      keyFile: './google-key.json',
+      credentials: parsedCredentials,
       scopes: ['https://www.googleapis.com/auth/calendar.events'],
     });
 
