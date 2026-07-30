@@ -17,7 +17,15 @@ import { CalendarModule } from './calendar/calendar.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      envFilePath:
+        process.env.NODE_ENV === 'production'
+          ? '.env.production'
+          : '.env.development',
+
+      // Jadikan global agar tidak perlu import ConfigModule di module lain
+      isGlobal: true,
+    }),
     ScheduleModule.forRoot(),
     PrismaModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
