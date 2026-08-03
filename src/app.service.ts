@@ -3,6 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { TasksService } from './tasks/tasks.service';
 import { TaskDaysService } from './task-days/task-days.service';
 import { CalendarService } from './calendar/calendar.service';
+import { WeeklyService } from './weekly/weekly.service';
+import { DailyService } from './daily/daily.service';
 
 @Injectable()
 export class AppService {
@@ -10,6 +12,8 @@ export class AppService {
     private readonly tasksService: TasksService,
     private readonly taskDaysService: TaskDaysService,
     private readonly calendarService: CalendarService,
+    private readonly dailyService: DailyService,
+    private readonly weeklyService: WeeklyService,
   ) {}
 
   private formatHourToString = (hour: number) => {
@@ -86,5 +90,43 @@ export class AppService {
 
       await Promise.allSettled(calendarPromises);
     }
+  }
+
+  async getScheduleForToday() {
+    const today = new Date();
+    const startOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+    );
+    const endOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+      23,
+      59,
+      59,
+      999,
+    );
+
+    const schedules = await this.taskDaysService.findAll();
+
+    const taskDaily = await this.dailyService.findAll();
+    const filteredTaskDaily = taskDaily.filter((task) => {
+      const taskDate = new Date(task.startTime);
+      return taskDate >= startOfDay && taskDate <= endOfDay;
+    });
+
+    const taskWeekly = await this.weeklyService.findAll();
+    const filteredTaskWeekly = taskWeekly.filter((task) => {
+      const taskDate = new Date(task.startTime);
+      return taskDate >= startOfDay && taskDate <= endOfDay;
+    });
+
+    return {
+      daily: filteredTaskDaily,
+      weekly: filteredTaskWeekly,
+      schedule: schedules,
+    };
   }
 }
