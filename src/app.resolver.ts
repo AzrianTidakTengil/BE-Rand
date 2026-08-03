@@ -1,5 +1,6 @@
-import { Resolver, Mutation } from '@nestjs/graphql';
+import { Resolver, Mutation, Query } from '@nestjs/graphql';
 import { AppService } from './app.service';
+import { ScheduleResponse } from './entities/schedule-response.entity';
 
 @Resolver()
 export class AppResolver {
@@ -15,5 +16,10 @@ export class AppResolver {
       console.error(error);
       return false;
     }
+  }
+
+  @Query(() => ScheduleResponse, { name: 'getScheduleForToday' })
+  async getScheduleForToday() {
+    return this.appService.getScheduleForToday();
   }
 }

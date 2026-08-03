@@ -34,7 +34,31 @@ type LogSchedule {
   eventId: Int!
 }
 
+type Daily {
+  id: Int!
+  name: String!
+  startTime: DateTime!
+  endTime: DateTime!
+}
+
+type Weekly {
+  id: Int!
+  name: String!
+  startTime: DateTime!
+  endTime: DateTime!
+  day: Int!
+}
+
+type ScheduleResponse {
+  daily: [Daily!]!
+  weekly: [Weekly!]!
+  schedule: [TaskDay!]!
+}
+
 type Query {
+  getScheduleForToday: ScheduleResponse!
+  getAllDaily: [Daily!]!
+  getDailyById(id: Int!): Daily
   getAllTasks: [Task!]!
   getTaskById(id: Int!): Task
   getAllEvents: [Event!]!
@@ -43,10 +67,15 @@ type Query {
   getTaskDayById(id: Int!): TaskDay
   getAllLogSchedules: [LogSchedule!]!
   getLogScheduleById(id: Int!): LogSchedule
+  getAllWeekly: [Weekly!]!
+  getWeeklyById(id: Int!): Weekly
 }
 
 type Mutation {
   generateScheduleToday: Boolean!
+  createManyDaily(data: [CreateDailyInput!]!): Daily!
+  updateDaily(id: Int!, data: UpdateDailyInput!): Daily!
+  deleteDaily(id: Int!): Daily!
   createManyTasks(data: [CreateTaskInput!]!): Int!
   updateTask(id: Int!, data: UpdateTaskInput!): Task!
   deleteTask(id: Int!): Task!
@@ -58,6 +87,21 @@ type Mutation {
   deleteTaskDay(id: Int!): TaskDay!
   createManyLogSchedules(data: [CreateLogScheduleInput!]!): Int!
   deleteLogSchedule(id: Int!): LogSchedule!
+  createManyWeekly(data: [CreateWeeklyInput!]!): Weekly!
+  updateWeekly(id: Int!, data: UpdateWeeklyInput!): Weekly!
+  deleteWeekly(id: Int!): Weekly!
+}
+
+input CreateDailyInput {
+  name: String!
+  startTime: DateTime!
+  endTime: DateTime!
+}
+
+input UpdateDailyInput {
+  name: String
+  startTime: DateTime
+  endTime: DateTime
 }
 
 input CreateTaskInput {
@@ -99,4 +143,18 @@ input UpdateTaskDayInput {
 input CreateLogScheduleInput {
   taskDayId: Int
   eventId: Int
+}
+
+input CreateWeeklyInput {
+  name: String!
+  startTime: DateTime!
+  endTime: DateTime!
+  day: Int!
+}
+
+input UpdateWeeklyInput {
+  name: String
+  startTime: DateTime
+  endTime: DateTime
+  day: Int
 }
