@@ -53,3 +53,18 @@ model LogSchedule {
   eventId     Int?
   event       Event?   @relation(fields: [eventId], references: [id])
 }
+
+model Daily {
+  id        Int      @id @default(autoincrement())
+  name      String
+  startTime DateTime
+  endTime   DateTime
+}
+
+model Weekly {
+  id        Int      @id @default(autoincrement())
+  name      String
+  startTime DateTime
+  endTime   DateTime
+  day       Int
+}
