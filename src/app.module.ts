@@ -14,6 +14,9 @@ import { LogScheduleModule } from './log-schedule/log-schedule.module';
 import { AppResolver } from './app.resolver';
 import { CalendarService } from './calendar/calendar.service';
 import { CalendarModule } from './calendar/calendar.module';
+import { DailyResolver } from './daily/daily.resolver';
+import { DailyModule } from './daily/daily.module';
+import { WeeklyModule } from './weekly/weekly.module';
 
 @Module({
   imports: [
@@ -38,9 +41,17 @@ import { CalendarModule } from './calendar/calendar.module';
     TaskDaysModule,
     LogScheduleModule,
     CalendarModule,
+    DailyModule,
+    WeeklyModule,
   ],
   controllers: [AppController],
-  providers: [AppService, AppResolver, AppResolver, CalendarService],
+  providers: [
+    AppService,
+    AppResolver,
+    AppResolver,
+    CalendarService,
+    DailyResolver,
+  ],
   exports: [AppService],
 })
 export class AppModule {}
