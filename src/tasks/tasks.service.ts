@@ -53,7 +53,7 @@ export class TasksService {
       },
     });
 
-    const [task] = await this.prisma.$transaction([deleteDays, deleteTask]);
+    const [, task] = await this.prisma.$transaction([deleteDays, deleteTask]);
 
     return task;
   }
