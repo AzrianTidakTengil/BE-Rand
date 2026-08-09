@@ -29,6 +29,14 @@ export class AppService {
 
   async generateRandomDailySchedule() {
     const tasks = await this.tasksService.findAll();
+    const taskDays = await this.taskDaysService.findAll();
+    const daily = await this.dailyService.findAll();
+    const weekly = await this.weeklyService.findAll();
+    const today = new Date();
+
+    if (taskDays.length > 0) {
+      return;
+    }
 
     if (tasks.length == 0) {
       return;
@@ -39,9 +47,45 @@ export class AppService {
       [tasks[i], tasks[j]] = [tasks[j], tasks[i]];
     }
 
-    const today = new Date();
-    let currentTime = new Date(today.setHours(8, 0, 0, 0));
-    const endTimeLimit = new Date(today.setHours(17, 0, 0, 0));
+    // --- 1. NORMALISASI WAKTU DAILY & WEEKLY KE HARI INI ---
+    // Sesuai prompt sebelumnya, kita ambil jamnya saja dari DB, tanggalnya pakai hari ini
+    const normalizeToToday = (dbDate: Date) => {
+      const d = new Date(today); // Copy tanggal hari ini
+      d.setHours(
+        dbDate.getHours(),
+        dbDate.getMinutes(),
+        dbDate.getSeconds(),
+        0,
+      );
+      return d;
+    };
+
+    // Gabungkan jadwal daily dan weekly ke dalam satu array jadwal "Fix"
+    const fixedSchedules = [
+      ...daily.map((d) => ({
+        name: d.name,
+        startTime: normalizeToToday(d.startTime),
+        endTime: normalizeToToday(d.endTime),
+      })),
+      ...weekly.map((w) => ({
+        name: w.name,
+        startTime: normalizeToToday(w.startTime),
+        endTime: normalizeToToday(w.endTime),
+      })),
+    ];
+
+    // Urutkan jadwal fix dari waktu yang paling awal
+    fixedSchedules.sort(
+      (a, b) => a.startTime.getTime() - b.startTime.getTime(),
+    );
+
+    // --- 2. PENJADWALAN TASKS (MENGHINDARI TABRAKAN) ---
+    let currentTime = new Date(today);
+    currentTime.setHours(8, 0, 0, 0); // Mulai jam 08:00
+
+    const endTimeLimit = new Date(today);
+    endTimeLimit.setHours(17, 0, 0, 0); // Berakhir jam 17:00
+
     const newSchedules: {
       taskId: number;
       taskName: string;
@@ -49,27 +93,60 @@ export class AppService {
       endTime: Date;
     }[] = [];
 
-    for (const task of tasks) {
-      if (currentTime >= endTimeLimit) break;
+    let taskIndex = 0; // Index untuk menunjuk task yang sedang dicoba dipasang
 
-      const nextTime = new Date(currentTime.getTime());
-      nextTime.setHours(currentTime.getHours() + 1);
+    while (currentTime < endTimeLimit && taskIndex < tasks.length) {
+      // a. Cek apakah currentTime menabrak jadwal tetap (daily/weekly)
+      const overlappingSchedule = fixedSchedules.find(
+        (fs) => currentTime >= fs.startTime && currentTime < fs.endTime,
+      );
 
-      const actualEndTime = nextTime > endTimeLimit ? endTimeLimit : nextTime;
+      if (overlappingSchedule) {
+        // Jika tabrakan, lompat ke akhir waktu jadwal yang menabrak tersebut
+        currentTime = new Date(overlappingSchedule.endTime);
+        continue;
+      }
 
-      newSchedules.push({
-        taskId: task.id,
-        taskName: task.name,
-        startTime: new Date(currentTime),
-        endTime: new Date(actualEndTime),
-      });
+      // b. Cari jadwal tetap berikutnya untuk tahu seberapa besar sisa waktu yang kosong
+      const nextFixedSchedule = fixedSchedules.find(
+        (fs) => fs.startTime > currentTime,
+      );
 
+      // Default: Task dialokasikan 1 jam
+      let actualEndTime = new Date(currentTime);
+      actualEndTime.setHours(currentTime.getHours() + 1);
+
+      // Jangan lewat batas kerja 17:00
+      if (actualEndTime > endTimeLimit) {
+        actualEndTime = endTimeLimit;
+      }
+
+      // Jangan sampai menabrak jadwal tetap di depannya, potong waktunya jika menabrak
+      if (nextFixedSchedule && actualEndTime > nextFixedSchedule.startTime) {
+        actualEndTime = nextFixedSchedule.startTime;
+      }
+
+      // Jika ada gap (durasi lebih dari 0 menit), masukkan ke jadwal baru
+      if (actualEndTime.getTime() > currentTime.getTime()) {
+        const currentTask = tasks[taskIndex];
+
+        newSchedules.push({
+          taskId: currentTask.id,
+          taskName: currentTask.name,
+          startTime: new Date(currentTime),
+          endTime: new Date(actualEndTime),
+        });
+
+        // Lanjut ke task berikutnya karena task ini sudah masuk
+        taskIndex++;
+      }
+
+      // Majukan pointer waktu untuk iterasi selanjutnya
       currentTime = new Date(actualEndTime);
     }
 
-    // 5. Simpan menggunakan fungsi dari TaskDaysService
+    // --- 3. SIMPAN KE DATABASE & KALENDAR ---
     if (newSchedules.length > 0) {
-      // 1. Filter data hanya yang dibutuhkan oleh Prisma (buang taskName)
       const prismaPayload = newSchedules.map(
         ({ taskId, startTime, endTime }) => ({
           taskId,
@@ -80,7 +157,7 @@ export class AppService {
 
       await this.taskDaysService.createMany(prismaPayload);
 
-      const calendarPromises = newSchedules.map((schedule) =>
+      const calendarSchedulePromises = newSchedules.map((schedule) =>
         this.calendarService.createEvent(
           schedule.taskName,
           schedule.startTime,
@@ -88,43 +165,35 @@ export class AppService {
         ),
       );
 
-      await Promise.allSettled(calendarPromises);
+      // Gunakan `fixedSchedules` karena tanggalnya sudah ditimpa menjadi hari ini
+      const calendarFixedPromises = fixedSchedules.map((item) =>
+        this.calendarService.createEvent(
+          item.name,
+          item.startTime,
+          item.endTime,
+        ),
+      );
+
+      // PERBAIKAN: Gunakan spread operator `...` di dalam array, bukan operator `&&`
+      await Promise.allSettled([
+        ...calendarSchedulePromises,
+        ...calendarFixedPromises,
+      ]);
     }
   }
 
   async getScheduleForToday() {
-    const today = new Date();
-    const startOfDay = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate(),
-    );
-    const endOfDay = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate(),
-      23,
-      59,
-      59,
-      999,
-    );
-
     const schedules = await this.taskDaysService.findAll();
 
     const taskDaily = await this.dailyService.findAll();
-    const filteredTaskDaily = taskDaily.filter((task) => {
-      const taskDate = new Date(task.startTime);
-      return taskDate >= startOfDay && taskDate <= endOfDay;
-    });
 
     const taskWeekly = await this.weeklyService.findAll();
     const filteredTaskWeekly = taskWeekly.filter((task) => {
-      const taskDate = new Date(task.startTime);
-      return taskDate >= startOfDay && taskDate <= endOfDay;
+      const taskDate = new Date().getDay();
+      return task.day == taskDate;
     });
-
     return {
-      daily: filteredTaskDaily,
+      daily: taskDaily,
       weekly: filteredTaskWeekly,
       schedule: schedules,
     };
