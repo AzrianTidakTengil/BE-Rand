@@ -8,7 +8,7 @@ import { Daily } from './entities/daily.entity';
 export class DailyResolver {
   constructor(private readonly dailyService: DailyService) {}
 
-  @Mutation(() => Daily, { name: 'createManyDaily' })
+  @Mutation(() => Int, { name: 'createManyDaily' })
   async createMany(
     @Args({ name: 'data', type: () => [CreateDailyInput] })
     data: CreateDailyInput[],

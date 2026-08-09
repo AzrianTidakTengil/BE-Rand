@@ -8,7 +8,7 @@ import { Weekly } from './entities/weekly.entity';
 export class WeeklyResolver {
   constructor(private readonly weeklyService: WeeklyService) {}
 
-  @Mutation(() => Weekly, { name: 'createManyWeekly' })
+  @Mutation(() => Int, { name: 'createManyWeekly' })
   async createMany(
     @Args({ name: 'data', type: () => [CreateWeeklyInput] })
     data: CreateWeeklyInput[],

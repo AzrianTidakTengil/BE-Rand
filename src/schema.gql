@@ -73,7 +73,7 @@ type Query {
 
 type Mutation {
   generateScheduleToday: Boolean!
-  createManyDaily(data: [CreateDailyInput!]!): Daily!
+  createManyDaily(data: [CreateDailyInput!]!): Int!
   updateDaily(id: Int!, data: UpdateDailyInput!): Daily!
   deleteDaily(id: Int!): Daily!
   createManyTasks(data: [CreateTaskInput!]!): Int!
@@ -87,7 +87,7 @@ type Mutation {
   deleteTaskDay(id: Int!): TaskDay!
   createManyLogSchedules(data: [CreateLogScheduleInput!]!): Int!
   deleteLogSchedule(id: Int!): LogSchedule!
-  createManyWeekly(data: [CreateWeeklyInput!]!): Weekly!
+  createManyWeekly(data: [CreateWeeklyInput!]!): Int!
   updateWeekly(id: Int!, data: UpdateWeeklyInput!): Weekly!
   deleteWeekly(id: Int!): Weekly!
 }
