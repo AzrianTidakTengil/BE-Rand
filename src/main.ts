@@ -11,7 +11,7 @@ async function bootstrap() {
   });
 
   app.enableCors({
-    origin: 'bejewelled-crisp-10e97b.netlify.app',
+    origin: 'https://bejewelled-crisp-10e97b.netlify.app/',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
