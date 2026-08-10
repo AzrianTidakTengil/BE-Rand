@@ -1,5 +1,6 @@
-import { Resolver, Mutation } from '@nestjs/graphql';
+import { Resolver, Mutation, Query } from '@nestjs/graphql';
 import { AppService } from './app.service';
+import { ScheduleResponse } from './dto/schedule-response';
 
 @Resolver()
 export class AppResolver {
@@ -11,6 +12,17 @@ export class AppResolver {
     try {
       await this.appService.generateRandomDailySchedule();
       return true;
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
+  }
+
+  @Query(() => ScheduleResponse, { name: 'getScheduleForToday' })
+  async getScheduleForToday(): Promise<ScheduleResponse | boolean> {
+    try {
+      await this.appService.generateRandomDailySchedule();
+      return this.appService.getScheduleForToday();
     } catch (error) {
       console.error(error);
       return false;

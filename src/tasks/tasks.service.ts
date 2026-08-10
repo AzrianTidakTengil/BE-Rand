@@ -41,10 +41,20 @@ export class TasksService {
 
   // Fungsi untuk menghapus task berdasarkan Id
   async delete(id: number) {
-    return this.prisma.task.delete({
+    const deleteDays = this.prisma.taskDay.deleteMany({
+      where: {
+        taskId: id,
+      },
+    });
+
+    const deleteTask = this.prisma.task.delete({
       where: {
         id,
       },
     });
+
+    const [, task] = await this.prisma.$transaction([deleteDays, deleteTask]);
+
+    return task;
   }
 }
