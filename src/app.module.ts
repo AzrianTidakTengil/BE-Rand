@@ -20,15 +20,7 @@ import { WeeklyModule } from './weekly/weekly.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      envFilePath:
-        process.env.NODE_ENV === 'production'
-          ? '.env.production'
-          : '.env.development',
-
-      // Jadikan global agar tidak perlu import ConfigModule di module lain
-      isGlobal: true,
-    }),
+    ConfigModule.forRoot(),
     ScheduleModule.forRoot(),
     PrismaModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
