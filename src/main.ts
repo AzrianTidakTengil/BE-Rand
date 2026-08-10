@@ -10,9 +10,16 @@ async function bootstrap() {
     credentials: true,
   });
 
+  app.enableCors({
+    origin: 'bejewelled-crisp-10e97b.netlify.app',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  });
+
   const port = process.env.PORT || 3001;
 
   await app.listen(port, '0.0.0.0');
   console.log(`Server is running on port: ${port}`);
+  console.log(process.env.DATABASE_URL);
 }
 bootstrap();
