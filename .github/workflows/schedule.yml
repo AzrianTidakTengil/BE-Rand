@@ -1,0 +1,17 @@
+name: Daily Schedule Trigger
+
+on:
+  schedule:
+    # Berjalan setiap hari pada jam 17:00 UTC (Sama dengan jam 00:00 WIB tengah malam)
+    - cron: '0 17 * * *'
+  workflow_dispatch: # Mengizinkan trigger manual dari tombol di GitHub
+
+jobs:
+  trigger-api:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call NestJS Endpoint
+        run: |
+          curl -X POST ${{ secrets.API_URL }} \
+          -H "x-api-key: ${{ secrets.CRON_SECRET_KEY }}" \
+          -H "Content-Type: application/json"
