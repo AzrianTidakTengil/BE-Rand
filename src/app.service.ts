@@ -50,13 +50,19 @@ export class AppService {
     // --- 1. NORMALISASI WAKTU DAILY & WEEKLY KE HARI INI ---
     // Sesuai prompt sebelumnya, kita ambil jamnya saja dari DB, tanggalnya pakai hari ini
     const normalizeToToday = (dbDate: Date) => {
-      const d = new Date(today); // Copy tanggal hari ini
-      d.setHours(
-        dbDate.getHours(),
-        dbDate.getMinutes(),
-        dbDate.getSeconds(),
-        0,
-      );
+      // 1. Buat copy tanggal hari ini
+      const d = new Date(today);
+
+      // 2. Dapatkan komponen waktu secara UTC, lalu konversi manual ke WIB (UTC+7)
+      const wibHours = (dbDate.getUTCHours() + 7) % 24;
+      const wibMinutes = dbDate.getUTCMinutes();
+      const wibSeconds = dbDate.getUTCSeconds();
+
+      // 3. Terapkan waktu WIB tersebut ke tanggal target,
+      // Kita set menggunakan fungsi UTC dan mengurangi 7 jam lagi
+      // agar saat disimpan, nilai absolutnya tetap benar secara universal
+      d.setUTCHours(wibHours - 7, wibMinutes, wibSeconds, 0);
+
       return d;
     };
 
@@ -81,10 +87,12 @@ export class AppService {
 
     // --- 2. PENJADWALAN TASKS (MENGHINDARI TABRAKAN) ---
     let currentTime = new Date(today);
-    currentTime.setHours(8, 0, 0, 0); // Mulai jam 08:00
+    // Set ke 01:00 UTC (Sama dengan 08:00 WIB)
+    currentTime.setHours(1, 0, 0, 0);
 
     const endTimeLimit = new Date(today);
-    endTimeLimit.setHours(17, 0, 0, 0); // Berakhir jam 17:00
+    // Set ke 10:00 UTC (Sama dengan 17:00 WIB)
+    endTimeLimit.setHours(10, 0, 0, 0);
 
     const newSchedules: {
       taskId: number;
