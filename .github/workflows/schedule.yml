@@ -15,3 +15,10 @@ jobs:
           curl -X POST ${{ secrets.API_URL }} \
           -H "x-api-key: ${{ secrets.CRON_SECRET_KEY }}" \
           -H "Content-Type: application/json"
+      - name: Wait for server to wake up
+        run: sleep 30
+      - name: Call NestJS Endpoint (Eksekusi Kedua)
+        run: |
+          curl -X POST ${{ secrets.API_URL }} \
+          -H "x-api-key: ${{ secrets.CRON_SECRET_KEY }}" \
+          -H "Content-Type: application/json"
