@@ -31,7 +31,7 @@ export class AppService {
     const tasks = await this.tasksService.findAll();
     const taskDays = await this.taskDaysService.findAll();
     const daily = await this.dailyService.findAll();
-    const weekly = await this.weeklyService.findAll();
+    const weekly = await this.weeklyService.findAllWhereDay();
     const today = new Date();
 
     if (taskDays.length > 0) {
@@ -72,11 +72,13 @@ export class AppService {
         name: d.name,
         startTime: normalizeToToday(d.startTime),
         endTime: normalizeToToday(d.endTime),
+        type: 1, // harian
       })),
       ...weekly.map((w) => ({
         name: w.name,
         startTime: normalizeToToday(w.startTime),
         endTime: normalizeToToday(w.endTime),
+        type: 2, // mingguan
       })),
     ];
 
@@ -99,6 +101,7 @@ export class AppService {
       taskName: string;
       startTime: Date;
       endTime: Date;
+      taskType?: number;
     }[] = [];
 
     let taskIndex = 0; // Index untuk menunjuk task yang sedang dicoba dipasang
@@ -143,6 +146,7 @@ export class AppService {
           taskName: currentTask.name,
           startTime: new Date(currentTime),
           endTime: new Date(actualEndTime),
+          taskType: 0,
         });
 
         // Lanjut ke task berikutnya karena task ini sudah masuk
@@ -170,6 +174,7 @@ export class AppService {
           schedule.taskName,
           schedule.startTime,
           schedule.endTime,
+          schedule.taskType,
         ),
       );
 
@@ -179,6 +184,7 @@ export class AppService {
           item.name,
           item.startTime,
           item.endTime,
+          item.type,
         ),
       );
 
