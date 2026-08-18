@@ -18,6 +18,14 @@ export class WeeklyService {
     return this.prisma.weekly.findMany();
   }
 
+  async findAllWhereDay() {
+    return this.prisma.weekly.findMany({
+      where: {
+        day: new Date().getDay(),
+      },
+    });
+  }
+
   async findUnique(id: number) {
     return this.prisma.weekly.findUnique({
       where: {
