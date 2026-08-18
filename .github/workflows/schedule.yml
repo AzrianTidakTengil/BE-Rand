@@ -9,19 +9,22 @@ on:
 jobs:
   trigger-api:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Call NestJS Endpoint (Eksekusi Pertama)
         run: |
           curl -X POST ${{ secrets.API_URL }} \
           -H "x-api-key: ${{ secrets.CRON_SECRET_KEY }}" \
           -H "Content-Type: application/json"
-      - name: Wait for server to wake up
+      - name: Tunggu 60 detik sebelum pemanggilan berikutnya
         run: sleep 60
       - name: Call NestJS Endpoint (Eksekusi Kedua)
         run: |
           curl -X POST ${{ secrets.API_URL }} \
           -H "x-api-key: ${{ secrets.CRON_SECRET_KEY }}" \
           -H "Content-Type: application/json"
+      - name: Tunggu 60 detik sebelum pemanggilan berikutnya
+        run: sleep 60
       - name: Call NestJS Endpoint (Eksekusi Ketiga)
         run: |
           curl -X POST ${{ secrets.API_URL }} \
