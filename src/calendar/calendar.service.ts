@@ -42,11 +42,55 @@ export class CalendarService {
     this.calendar = google.calendar({ version: 'v3', auth });
   }
 
-  async createEvent(taskName: string, startTime: Date, endTime: Date) {
+  async createEvent(
+    taskName: string,
+    startTime: Date,
+    endTime: Date,
+    taskType?: number,
+  ) {
     try {
+      // Tentukan variasi tampilan berdasarkan tipe tugas
+      const typeConfig = {
+        0: {
+          prefix: 'Tugas',
+          colorId: '6',
+          reminders: [{ method: 'popup', minutes: 10 }],
+        },
+        1: {
+          prefix: 'Harian',
+          colorId: '2',
+          reminders: [{ method: 'popup', minutes: 30 }],
+        },
+        2: {
+          prefix: 'Mingguan',
+          colorId: '8',
+          reminders: [{ method: 'popup', minutes: 30 }],
+        },
+        3: {
+          prefix: 'Event',
+          colorId: '4',
+          reminders: [
+            { method: 'email', minutes: 60 },
+            { method: 'popup', minutes: 15 },
+          ],
+        },
+      } as Record<
+        number,
+        {
+          prefix: string;
+          colorId: string;
+          reminders: calendar_v3.Schema$EventReminder[];
+        }
+      >;
+
+      const cfg =
+        taskType !== undefined && typeConfig[taskType]
+          ? typeConfig[taskType]
+          : typeConfig[0];
+
       const event: calendar_v3.Schema$Event = {
-        summary: `Tugas: ${taskName}`,
-        description: 'Dibuat otomatis oleh Aplikasi Jadwal Saya',
+        summary: `${cfg.prefix}: ${taskName}`,
+        description: `Dibuat otomatis oleh Aplikasi Jadwal Saya — Tipe: ${cfg.prefix}`,
         start: {
           dateTime: startTime.toISOString(),
           timeZone: 'Asia/Jakarta',
@@ -55,12 +99,11 @@ export class CalendarService {
           dateTime: endTime.toISOString(),
           timeZone: 'Asia/Jakarta',
         },
+        colorId: cfg.colorId,
+        visibility: taskType === 3 ? 'public' : 'default',
         reminders: {
           useDefault: false,
-          overrides: [
-            { method: 'popup', minutes: 0 },
-            { method: 'popup', minutes: 10 },
-          ],
+          overrides: cfg.reminders,
         },
       };
 
