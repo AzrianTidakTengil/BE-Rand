@@ -2,8 +2,8 @@ name: Daily Schedule Trigger
 
 on:
   schedule:
-    # Berjalan setiap hari pada jam 17:30 UTC (Sama dengan jam 00:30 WIB)
-    - cron: '30 17 * * *'
+    # Berjalan setiap hari pada jam 18:15 UTC (Sama dengan jam 01:15 WIB)
+    - cron: '15 18 * * *'
   workflow_dispatch: # Mengizinkan trigger manual dari tombol di GitHub
 
 jobs:
