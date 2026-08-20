@@ -32,7 +32,33 @@ export class AppService {
     const taskDays = await this.taskDaysService.findAll();
     const daily = await this.dailyService.findAll();
     const weekly = await this.weeklyService.findAllWhereDay();
-    const today = new Date();
+
+    const getWibParts = (date = new Date()) => {
+      const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Jakarta',
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+      });
+      const parts = formatter.formatToParts(date);
+      const val = parts.reduce(
+        (acc, part) => {
+          acc[part.type] = part.value;
+          return acc;
+        },
+        {} as Record<string, string>,
+      );
+
+      return {
+        year: parseInt(val.year),
+        month: parseInt(val.month) - 1, // 0-indexed
+        day: parseInt(val.day),
+      };
+    };
+
+    const wib = getWibParts();
+    // Gunakan tengah malam UTC untuk tanggal hari ini di WIB agar konsisten secara zona waktu
+    const today = new Date(Date.UTC(wib.year, wib.month, wib.day));
 
     if (taskDays.length > 0) {
       return;
@@ -88,13 +114,15 @@ export class AppService {
     );
 
     // --- 2. PENJADWALAN TASKS (MENGHINDARI TABRAKAN) ---
-    let currentTime = new Date(today);
-    // Set ke 01:00 UTC (Sama dengan 08:00 WIB)
-    currentTime.setHours(1, 0, 0, 0);
+    // Atur awal kerja ke jam 08:00 WIB (01:00 UTC) pada hari ini secara WIB
+    let currentTime = new Date(
+      Date.UTC(wib.year, wib.month, wib.day, 8 - 7, 0, 0, 0),
+    );
 
-    const endTimeLimit = new Date(today);
-    // Set ke 10:00 UTC (Sama dengan 17:00 WIB)
-    endTimeLimit.setHours(10, 0, 0, 0);
+    // Atur batas akhir kerja ke jam 17:00 WIB (10:00 UTC) pada hari ini secara WIB
+    const endTimeLimit = new Date(
+      Date.UTC(wib.year, wib.month, wib.day, 17 - 7, 0, 0, 0),
+    );
 
     const newSchedules: {
       taskId: number;
