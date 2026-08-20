@@ -17,25 +17,41 @@ export class TaskDaysService {
 
   // Fungsi untuk mengambil semua taskDay
   async findAll() {
-    // 1. Tentukan tanggal hari ini
-    const today = new Date();
+    const getWibParts = (date = new Date()) => {
+      const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Jakarta',
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+      });
+      const parts = formatter.formatToParts(date);
+      const val = parts.reduce(
+        (acc, part) => {
+          acc[part.type] = part.value;
+          return acc;
+        },
+        {} as Record<string, string>,
+      );
 
-    // 2. Buat batas awal hari ini (Jam 00:00:00)
+      return {
+        year: parseInt(val.year),
+        month: parseInt(val.month) - 1, // 0-indexed
+        day: parseInt(val.day),
+      };
+    };
+
+    const wib = getWibParts();
+
+    // 2. Buat batas awal hari ini (Jam 00:00:00 WIB)
+    // 00:00:00 WIB = 17:00:00 UTC hari sebelumnya
     const startOfDay = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate(),
+      Date.UTC(wib.year, wib.month, wib.day, 0 - 7, 0, 0, 0),
     );
 
-    // 3. Buat batas akhir hari ini (Jam 23:59:59)
+    // 3. Buat batas akhir hari ini (Jam 23:59:59.999 WIB)
+    // 23:59:59.999 WIB = 16:59:59.999 UTC hari yang sama
     const endOfDay = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate(),
-      23,
-      59,
-      59,
-      999,
+      Date.UTC(wib.year, wib.month, wib.day, 23 - 7, 59, 59, 999),
     );
 
     return this.prisma.taskDay.findMany({
