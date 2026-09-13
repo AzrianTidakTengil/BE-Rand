@@ -19,9 +19,14 @@ export class WeeklyService {
   }
 
   async findAllWhereDay() {
+    const now = new Date();
+
+    const wibDate = new Date(now.getTime() + 7 * 60 * 60 * 1000);
+    const wibDay = wibDate.getUTCDay();
+
     return this.prisma.weekly.findMany({
       where: {
-        day: new Date().getDay(),
+        day: wibDay,
       },
     });
   }
